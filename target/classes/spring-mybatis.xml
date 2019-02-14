@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+		http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+		<!-- 配置 spring-mybatis.xml -->
+			<!-- 读取配置文件 -->
+			<util:properties id="jdbc" location="classpath:conf/jdbc.properties" />
+			<!-- 配置数据库连接池 -->
+			<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+				destroy-method="close">
+				<!-- 数据库驱动 -->
+				<property name="driverClassName" value="#{jdbc.driver}" />
+				<!-- 相应驱动的jdbcUrl -->
+				<property name="url" value="#{jdbc.url}" />
+				<!-- 数据库的用户名 -->
+				<property name="username" value="#{jdbc.user}" />
+				<!-- 数据库的密码 -->
+				<property name="password" value="#{jdbc.password}" />
+				<!-- 数据库编码格式 -->
+				<property name="connectionProperties" value="#{jdbc.connectionProperties}" />
+			</bean>
+			
+			<!-- 配置MyBatis的 SessionFactory --><!-- 配置mapper多个路径 -->
+			<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+				<property name="dataSource" ref="dataSource" />
+				<property name="mapperLocations" >
+					<array>
+		              <value>classpath:mapper/*.xml</value>
+		          </array>
+		         </property>
+		         <property name="typeAliasesPackage"  value="cn.eyunsoft.LeKangERP.entity" />
+		         <property name="plugins">
+			        <array>
+				          <bean class="com.github.pagehelper.PageHelper">
+					            <property name="properties">
+						              <value>
+						                dialect=sqlserver
+						                reasonable=true
+						              </value>
+					            </property>
+				          </bean>
+			        </array>
+		      	</property> 
+			</bean>
+			<!-- Mapper接口组件扫描 -->
+			<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+				<property name="basePackage" value="cn.eyunsoft.LeKangERP.dao" />
+			</bean>
+			
+			<!-- spring-mybatis.xml -->
+			<bean id="txManager"
+				class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+				<property name="dataSource" ref="dataSource" />
+			</bean>
+			<!-- 设置 注解驱动的事务管理 -->
+			<tx:annotation-driven transaction-manager="txManager" />
+</beans>
